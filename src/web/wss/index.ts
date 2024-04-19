@@ -53,6 +53,7 @@ export class Connect {
 
   // Creat a websocket heartbeat timer
 
+
   private createHbTimer = ({ hb = 0, hbInterval = 145 } = {}) => {
     // Clear the previous heartbeat timer
     hbIntervalTimer && clearInterval(hbIntervalTimer);
@@ -60,8 +61,16 @@ export class Connect {
     // Create a new heartbeat timer
     let intervalTime = Math.ceil(hbInterval * (0.8 + 0.2 * Math.random()));
     hbIntervalTimer = setInterval(() => {
+      if (ws.readyState !== ws.OPEN) {
+        return;
+      }
       this.root.logObj?.info("Send ping: ping");
-      ws.send("ping");
+      try {
+        ws.send("ping");
+      }
+      catch( err ) {
+        this.root.logObj?.error( err );
+      }
     }, intervalTime * 1000);
     this.root.logObj?.info(`A timer for sending heartbeat packets has been created. Time interval: ${intervalTime}s`);
   };
@@ -105,7 +114,12 @@ export class Connect {
         sequence: new Date().getTime().toString()
       };
       this.root.logObj?.info(`Send userOnline message: ${JSON.stringify(data)}`);
-      ws?.send(JSON.stringify(data));
+      try {
+        ws?.send(JSON.stringify(data));
+      }
+      catch( err ) {
+        this.root.logObj?.error( err );
+      }
       if (onOpen) {
         onOpen(ws);
       }
@@ -218,7 +232,12 @@ export class Connect {
     }
     const data: string = this.getUpdateState(deviceId, params, action, userAgent, userApiKey);
     this.root.logObj?.info("Send update message:：" + data);
-    ws?.send(data);
+    try {
+      ws?.send(data);
+    }
+    catch(err) {
+      this.root.logObj?.error(err);
+    }
   };
 }
 
